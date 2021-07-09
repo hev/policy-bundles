@@ -1,0 +1,447 @@
+{
+  "blacklisted_images": [
+    {
+      "comment": "(SITE SPECIFIC: add any container images that have been deemed explicitly blocked in this section)",
+      "id": "4e3bed1d-c7d6-475a-9ddf-0109df9d6687",
+      "image": {
+        "type": "tag",
+        "value": "*"
+      },
+      "name": "aeon miner",
+      "registry": "*",
+      "repository": "badrepo"
+    }
+  ],
+  "description": "Monitor runtime for vulnerabilities, network access, and set allow list expirations.",
+  "id": "0939de71-0ad7-46c9-9a57-28646e8fe410",
+  "mappings": [
+    {
+      "comment": "Default mapping that matches all registry/repo:tag images",
+      "id": "042d5b75-ed9d-4fb7-8d41-ec174102f696",
+      "image": {
+        "type": "tag",
+        "value": "*"
+      },
+      "name": "default",
+      "policy_ids": [
+        "AC-6(10)",
+        "CM-6(b)",
+        "CM-7(a)",
+        "IA-5(7)",
+        "RA-5"
+      ],
+      "registry": "*",
+      "repository": "*",
+      "whitelist_ids": []
+    }
+  ],
+  "name": "Monitor Runtime",
+  "policies": [
+    {
+      "comment": "Embedded Credentials",
+      "id": "IA-5(7)",
+      "name": "aws-secrets",
+      "rules": [
+        {
+          "action": "STOP",
+          "comment": "2.18 - The Container Image Must Be Clear of Embedded Credentials",
+          "gate": "secret_scans",
+          "id": "26c8c583-b512-412a-87bb-1a2ede592269",
+          "params": [
+            {
+              "name": "content_regex_name",
+              "value": "API_KEY"
+            }
+          ],
+          "trigger": "content_regex_checks"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.18 - The Container Image Must Be Clear of Embedded Credentials",
+          "gate": "secret_scans",
+          "id": "fde16d3e-8cf7-4a73-987c-296c076fe3bb",
+          "params": [
+            {
+              "name": "content_regex_name",
+              "value": "AWS_SECRET_KEY"
+            }
+          ],
+          "trigger": "content_regex_checks"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.18 - The Container Image Must Be Clear of Embedded Credentials",
+          "gate": "secret_scans",
+          "id": "b263e5fa-30ae-4c37-a98a-80f029d9dc66",
+          "params": [
+            {
+              "name": "content_regex_name",
+              "value": "AWS_ACCESS_KEY"
+            }
+          ],
+          "trigger": "content_regex_checks"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.18 - The Container Image Must Be Clear of Embedded Credentials",
+          "gate": "files",
+          "id": "34d8cbd1-b946-4c90-bc4f-1ed5439039f0",
+          "params": [
+            {
+              "name": "regex_name",
+              "value": ".*AWS_ACCESS_KEY.*"
+            }
+          ],
+          "trigger": "content_regex_match"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.18 - The Container Image Must Be Clear of Embedded Credentials",
+          "gate": "files",
+          "id": "4d71f1e9-6168-4774-88ed-a946fc68f6fe",
+          "params": [
+            {
+              "name": "regex_name",
+              "value": ".*AWS_SECRET_KEY.*"
+            }
+          ],
+          "trigger": "content_regex_match"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.18 - The Container Image Must Be Clear of Embedded Credentials",
+          "gate": "files",
+          "id": "ef87dd6a-1885-466c-a8dc-8365dee2c293",
+          "params": [
+            {
+              "name": "regex_name",
+              "value": ".*password.*"
+            }
+          ],
+          "trigger": "content_regex_match"
+        }
+      ],
+      "version": "1_0"
+    },
+    {
+      "comment": "Container Image Must Have Permissions Removed from Executables that Allow  a User to Execute Software at Higher Privileges",
+      "id": "AC-6(10)",
+      "name": "non-root",
+      "rules": [
+        {
+          "action": "STOP",
+          "comment": "2.3 - Container Image Must Have Permissions Removed from Executables that Allow  a User to Execute Software at Higher Privileges",
+          "gate": "files",
+          "id": "e0c0daa6-edbc-4f22-83ab-e6def5e34867",
+          "params": [],
+          "trigger": "suid_or_guid_set"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.2 - The Container Image Must Be Created to Execute as a Non-Privileged User",
+          "gate": "dockerfile",
+          "id": "fbe300b9-085b-4648-ba54-00d0b1130ae4",
+          "params": [
+            {
+              "name": "users",
+              "value": "root,docker"
+            },
+            {
+              "name": "type",
+              "value": "blacklist"
+            }
+          ],
+          "trigger": "effective_user"
+        }
+      ],
+      "version": "1_0"
+    },
+    {
+      "comment": "Confidential Data Checks",
+      "id": "CM-6(b)",
+      "name": "general-secrets",
+      "rules": [
+        {
+          "action": "STOP",
+          "comment": "2.9 - The Container Image Must Be Created Without Confidential Data in the Build Files",
+          "gate": "secret_scans",
+          "id": "00041794-2117-4846-a76b-a25825dadf4f",
+          "params": [],
+          "trigger": "content_regex_checks"
+        },
+        {
+          "action": "STOP",
+          "comment": "2.9 - The Container Image Must Be Created Without Confidential Data in the Build Files",
+          "gate": "secret_scans",
+          "id": "d8b5e008-47ad-4353-8c44-893bff313c12",
+          "params": [
+            {
+              "name": "match_type",
+              "value": "found"
+            }
+          ],
+          "trigger": "content_regex_checks"
+        }
+      ],
+      "version": "1_0"
+    },
+    {
+      "comment": "Warn against bad docker build practices.",
+      "id": "CM-7(a)",
+      "name": "dockerfile-warnings",
+      "rules": [
+        {
+          "action": "WARN",
+          "gate": "vulnerabilities",
+          "id": "cbc31e02-e995-4dd6-b352-d58364b705f1",
+          "params": [
+            {
+              "name": "package_type",
+              "value": "all"
+            },
+            {
+              "name": "severity_comparison",
+              "value": ">="
+            },
+            {
+              "name": "severity",
+              "value": "medium"
+            },
+            {
+              "name": "cvss_v3_base_score_comparison",
+              "value": ">="
+            },
+            {
+              "name": "cvss_v3_base_score",
+              "value": "7.0"
+            }
+          ],
+          "trigger": "package"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.1 - The Container Image Must Be Built with the SSH Server Daemon Disabled",
+          "gate": "packages",
+          "id": "94a6cbb5-66b0-4bc7-b1dc-6293cca251a7",
+          "params": [
+            {
+              "name": "name",
+              "value": "sshd"
+            }
+          ],
+          "trigger": "blacklist"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.1 - The Container Image Must Be Built with the SSH Server Daemon Disabled",
+          "gate": "packages",
+          "id": "94a6cbb5-66b0-4bc7-b1dc-6293cca251a8",
+          "params": [
+            {
+              "name": "name",
+              "value": "openssh-server"
+            }
+          ],
+          "trigger": "blacklist"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.4 - The Container Image Must Be Built Using Commands that Result in Known Outcomes",
+          "gate": "dockerfile",
+          "id": "c27145d9-9626-4669-af3f-7415bfec4c76",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "RUN"
+            },
+            {
+              "name": "check",
+              "value": "like"
+            },
+            {
+              "name": "value",
+              "value": "(?i)(\\.*(sftp://|http://|https://|ftp://)\\.*)"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.4 - The Container Image Must Be Built Using Commands that Result in Known Outcomes",
+          "gate": "dockerfile",
+          "id": "54ee4ea2-2400-4e1e-9894-5f17b5a08373",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "ADD"
+            },
+            {
+              "name": "check",
+              "value": "exists"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.4 - The Container Image Must Be Built Using Commands that Result in Known Outcomes",
+          "gate": "dockerfile",
+          "id": "6a6ba35f-5e78-4757-8fa3-fd8c2fbd1665",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "FROM"
+            },
+            {
+              "name": "check",
+              "value": "like"
+            },
+            {
+              "name": "value",
+              "value": "(?i)(\\.*(sftp://|http://|https://|ftp://)\\.*)"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.4 - The Container Image Must Be Built Using Commands that Result in Known Outcomes",
+          "gate": "dockerfile",
+          "id": "36aee740-5009-4284-baa3-714e03acfae3",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "COPY"
+            },
+            {
+              "name": "check",
+              "value": "like"
+            },
+            {
+              "name": "value",
+              "value": "(?i)(\\.*(sftp://|http://|https://|ftp://)\\.*)"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.4 - The Container Image Must Be Built Using Commands that Result in Known Outcomes",
+          "gate": "dockerfile",
+          "id": "a74f02fa-93f9-4ac3-b5d5-82be40098050",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "ADD"
+            },
+            {
+              "name": "check",
+              "value": "like"
+            },
+            {
+              "name": "value",
+              "value": "(?i)(\\.*(sftp://|http://|https://|ftp://)\\.*)"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "WARN",
+          "comment": "2.12 - The Container Image Must Be Created with Only Essential Capabilities (SITE-SPECIFIC: tcpdump is here as a reference, other software can be added to blacklist to minimize installation of non essential packages)",
+          "gate": "packages",
+          "id": "d29c07ef-bbee-4b9d-b9b2-499cd6153025",
+          "params": [
+            {
+              "name": "name",
+              "value": "tcpdump"
+            }
+          ],
+          "trigger": "blacklist"
+        }
+      ],
+      "version": "1_0"
+    },
+    {
+      "comment": "Software Vulnerability Checks",
+      "id": "RA-5",
+      "name": "vulns",
+      "rules": [
+        {
+          "action": "STOP",
+          "comment": "Scan images frequently for any vulnerabilites. Rebuild the images to include patches and then instantiate new containers from it.",
+          "gate": "vulnerabilities",
+          "id": "0821c410-b0d4-4a25-90d7-aa71b46d7e32",
+          "params": [
+            {
+              "name": "package_type",
+              "value": "all"
+            },
+            {
+              "name": "severity_comparison",
+              "value": ">="
+            },
+            {
+              "name": "severity",
+              "value": "low"
+            },
+            {
+              "name": "vendor_only",
+              "value": "true"
+            }
+          ],
+          "trigger": "package"
+        },
+        {
+          "action": "STOP",
+          "comment": "Scan images frequently for any vulnerabilites. Rebuild the images to include patches and then instantiate new containers from it.",
+          "gate": "vulnerabilities",
+          "id": "211fa08b-e69a-4165-a0df-05cd3bd0e002",
+          "params": [
+            {
+              "name": "package_type",
+              "value": "all"
+            },
+            {
+              "name": "severity_comparison",
+              "value": ">="
+            },
+            {
+              "name": "severity",
+              "value": "unknown"
+            },
+            {
+              "name": "fix_available",
+              "value": "true"
+            }
+          ],
+          "trigger": "package"
+        },
+        {
+          "action": "WARN",
+          "comment": "Scan images frequently for any vulnerabilites. Rebuild the images to include patches and then instantiate new containers from it.",
+          "gate": "vulnerabilities",
+          "id": "e3a73079-fe16-4de6-9b2f-3982277e57d5",
+          "params": [
+            {
+              "name": "max_days_since_sync",
+              "value": "15"
+            }
+          ],
+          "trigger": "stale_feed_data"
+        },
+        {
+          "action": "WARN",
+          "comment": "Scan images frequently for any vulnerabilites. Rebuild the images to include patches and then instantiate new containers from it.",
+          "gate": "vulnerabilities",
+          "id": "aeff8bdb-82b5-44fd-87ef-d8fdd50893e8",
+          "params": [],
+          "trigger": "vulnerability_data_unavailable"
+        }
+      ],
+      "version": "1_0"
+    }
+  ],
+  "version": "1_0",
+  "whitelisted_images": [],
+  "whitelists": []
+}
